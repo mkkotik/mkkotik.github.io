@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MKotik — SunRay OS, Игры и Приложения</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение шрифтов Inter и JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#0f1015',
+                        card: '#181a22',
+                        cardHover: '#222530',
+                        sunray: '#f59e0b',
+                        mkPrimary: '#8b5cf6',
+                        itch: '#fa5c5c'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Чистые классические стили без тяжелого размытия и стекла */
+        body {
+            background-color: #0f1015;
+            color: #f4f4f5;
+            overflow-x: hidden;
+        }
+
+        /* Обычные чистые плотные блоки вместо эффектов матового стекла */
+        .solid-panel {
+            background-color: #181a22;
+            border: 1px solid #272a35;
+        }
+
+        .solid-panel-hover:hover {
+            background-color: #222530;
+            border-color: #3b4052;
+        }
+
+        /* Анимация плавного появления страниц */
+        .page-view {
+            animation: fadeIn 0.25s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Кнопка SunRay OS */
+        .btn-sunray {
+            transition: all 0.25s ease;
+        }
+        .btn-sunray:hover {
+            border-color: #f59e0b;
+            background-color: #221e16;
+            transform: translateY(-1px);
+        }
+
+        .os-text-default,
+        .os-text-hover {
+            transition: all 0.25s ease;
+        }
+
+        .os-text-hover {
+            position: absolute;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .btn-sunray:hover .os-text-default {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .btn-sunray:hover .os-text-hover {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .sun-icon {
+            transition: transform 0.4s ease;
+        }
+        .btn-sunray:hover .sun-icon {
+            transform: rotate(45deg);
+        }
+
+        /* Скроллбар для эмулятора */
+        .os-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .os-scroll::-webkit-scrollbar-track {
+            background: #0f1015;
+        }
+        .os-scroll::-webkit-scrollbar-thumb {
+            background: #3b4052;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-purple-500 selection:text-white">
+
+    <!-- =====================================================================
+         ШАПКА САЙТА (NAVIGATION)
+         ===================================================================== -->
+    <header class="w-full sticky top-0 z-50 bg-[#121319] border-b border-[#222530]">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <!-- Логотип MKotik -->
+            <button onclick="navigateTo('home')" class="flex items-center gap-3 group focus:outline-none cursor-pointer">
+                <div class="w-10 h-10 rounded-xl bg-purple-600 p-0.5 shadow">
+                    <div class="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-400 group-hover:text-white transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3.1-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"/>
+                            <path d="M8 14v.5"/>
+                            <path d="M16 14v.5"/>
+                            <path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="text-left">
+                    <span class="font-extrabold text-xl tracking-tight text-white">MKotik</span>
+                    <span class="hidden sm:inline-block ml-2 text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">DEV</span>
+                </div>
+            </button>
+
+            <!-- Навигация -->
+            <nav class="flex items-center gap-1.5 sm:gap-3">
+                <button onclick="navigateTo('home')" id="nav-home" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-white bg-zinc-800 cursor-pointer">
+                    Главная
+                </button>
+                <button onclick="navigateTo('sunray')" id="nav-os" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-amber-400 hover:bg-zinc-800/60 cursor-pointer">
+                    SunRay OS
+                </button>
+                <button onclick="navigateTo('games')" id="nav-games" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-zinc-400 hover:text-purple-400 hover:bg-zinc-800/60 cursor-pointer">
+                    Games & Apps
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         ОСНОВНОЙ КОНТЕЙНЕР СТРАНИЦ (SPA)
+         ===================================================================== -->
+    <main class="flex-grow flex flex-col justify-center max-w-6xl w-full mx-auto px-4 sm:px-6 py-10">
+
+        <!-- -----------------------------------------------------------------
+             СТРАНИЦА 1: ГЛАВНАЯ
+             ----------------------------------------------------------------- -->
+        <section id="view-home" class="page-view flex flex-col items-center text-center">
+            
+            <!-- Бейдж статуса -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full solid-panel text-xs font-mono text-zinc-300 mb-8 border-purple-500/30">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Системное программирование • x86 OS • Инди-разработка</span>
+            </div>
+
+            <!-- Главный заголовок -->
+            <h1 class="text-5xl sm:text-7xl font-extrabold tracking-tight mb-6 text-white">
+                Добро пожаловать в
+                <span class="block mt-2 text-purple-400">
+                    MKotik
+                </span>
+            </h1>
+
+            <!-- Описание -->
+            <p class="max-w-2xl text-zinc-400 text-base sm:text-xl leading-relaxed mb-12">
+                Разработка собственной 32-битной операционной системы с нуля — 
+                <span class="text-amber-400 font-semibold">SunRayOS</span>, а также будущих игр и приложений.
+            </p>
+
+            <!-- Две главные кнопки -->
+            <div class="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-14">
+                
+                <!-- Кнопка My OS -->
+                <button 
+                    id="btn-my-os"
+                    onclick="navigateTo('sunray')"
+                    class="btn-sunray group relative h-20 sm:h-24 rounded-xl solid-panel flex items-center justify-center px-6 cursor-pointer focus:outline-none">
+                    
+                    <div class="os-text-default relative z-10 flex items-center gap-3">
+                        <svg class="w-6 h-6 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <rect x="2" y="3" width="20" height="14" rx="2" stroke-width="2"/>
+                            <path d="M8 21h8M12 17v4" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="text-xl sm:text-2xl font-bold tracking-wide text-white">My OS</span>
+                    </div>
+
+                    <div class="os-text-hover z-10 flex items-center gap-3 text-amber-400">
+                        <svg class="sun-icon w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="4" stroke-width="2.2"/>
+                            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke-width="2.2" stroke-linecap="round"/>
+                        </svg>
+                        <div class="text-left">
+                            <span class="block text-xl sm:text-2xl font-extrabold tracking-tight leading-none text-white">SunRay OS</span>
+                            <span class="block text-[11px] font-bold uppercase tracking-wider text-amber-400 mt-0.5">Открыть проект →</span>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Кнопка My Games and Apps -->
+                <button 
+                    id="btn-games-apps"
+                    onclick="navigateTo('games')"
+                    class="group relative h-20 sm:h-24 rounded-xl solid-panel solid-panel-hover transition-all flex items-center justify-center px-6 cursor-pointer focus:outline-none">
+                    
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-900/40 border border-purple-500/30 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="text-left">
+                            <span class="block text-lg sm:text-xl font-bold text-white">My Games and Apps</span>
+                            <span class="block text-xs text-zinc-400">Статус разработки →</span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Блок itch.io -->
+            <div class="w-full max-w-3xl solid-panel rounded-2xl p-6 sm:p-8 text-left relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-[#fa5c5c]"></div>
+                
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-14 h-14 shrink-0 rounded-xl bg-[#fa5c5c]/10 border border-[#fa5c5c]/30 flex items-center justify-center text-[#fa5c5c]">
+                            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3.13 1.338C2.08 1.96 1.02 3.31 1.02 3.92v1.34c0 1.36 1.27 2.57 2.43 2.57 1.38 0 2.54-1.15 2.54-2.51 0 1.36 1.12 2.51 2.5 2.51 1.39 0 2.47-1.15 2.47-2.51 0 1.36 1.16 2.51 2.54 2.51h.02c1.38 0 2.54-1.15 2.54-2.51 0 1.36 1.08 2.51 2.47 2.51 1.38 0 2.5-1.15 2.5-2.51 0 1.36 1.16 2.51 2.54 2.51 1.16 0 2.43-1.21 2.43-2.57V3.92c0-.61-1.06-1.96-2.11-2.582C19.62.77 15.16.75 12 .75c-3.16 0-7.62.02-8.87.588zm6.38 8.392c-.78 0-1.45.44-1.85 1.1-.4-.66-1.07-1.1-1.85-1.1-1.28 0-2.32 1.05-2.32 2.34 0 2.34 2.75 4.41 4.17 5.56 1.42-1.15 4.17-3.22 4.17-5.56 0-1.29-1.04-2.34-2.32-2.34zm8.98 0c-.78 0-1.45.44-1.85 1.1-.4-.66-1.07-1.1-1.85-1.1-1.28 0-2.32 1.05-2.32 2.34 0 2.34 2.75 4.41 4.17 5.56 1.42-1.15 4.17-3.22 4.17-5.56 0-1.29-1.04-2.34-2.32-2.34z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h2 class="text-xl font-bold text-white">MKotik на itch.io</h2>
+                                <span class="text-xs px-2 py-0.5 rounded bg-zinc-800 text-[#fa5c5c] font-mono border border-zinc-700">mkkotik.itch.io</span>
+                            </div>
+                            <p class="text-sm text-zinc-400 mt-1 max-w-md">
+                                Официальная страница разработчика на itch.io, где публикуются проекты и игры MKotik.
+                            </p>
+                        </div>
+                    </div>
+
+                    <a id="link-itch-profile" href="https://mkkotik.itch.io/" target="_blank" rel="noopener noreferrer"
+                       class="w-full sm:w-auto shrink-0 justify-center px-6 py-3 rounded-xl bg-[#fa5c5c] hover:bg-[#ff4747] text-white font-semibold text-sm flex items-center gap-2 transition-colors">
+                        <span>Открыть itch.io</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- -----------------------------------------------------------------
+             СТРАНИЦА 2: SUNRAY OS
+             ----------------------------------------------------------------- -->
+        <section id="view-sunray" class="page-view hidden space-y-8">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <button onclick="navigateTo('home')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl solid-panel solid-panel-hover text-sm font-medium text-zinc-300 hover:text-white transition-colors cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span>Назад на главную</span>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full">
+                        i686-elf • Multiboot
+                    </span>
+                    <span class="text-xs font-mono text-amber-400 bg-amber-950/40 border border-amber-500/30 px-3 py-1 rounded-full">
+                        SunRayOS v0.2
+                    </span>
+                </div>
+            </div>
+
+            <!-- Описание -->
+            <div class="solid-panel rounded-2xl p-6 sm:p-8 border-amber-500/30">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div>
+                        <div class="inline-flex items-center gap-2 text-amber-400 font-mono text-xs sm:text-sm mb-2">
+                            <span>C + x86 Assembly • Clang / LLD • QEMU</span>
+                        </div>
+                        <h2 class="text-3xl sm:text-5xl font-extrabold text-white mb-3">
+                            SunRay<span class="text-amber-400">OS</span>
+                        </h2>
+                        <p class="text-zinc-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                            <span class="font-mono text-amber-300">«Welcome to SunRayOS! A tiny OS written from scratch.»</span> — 
+                            32-битная операционная система для архитектуры <code class="text-zinc-200 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">x86 (i686)</code>, 
+                            написанная с нуля без стандартных библиотек.
+                        </p>
+                    </div>
+
+                    <!-- Переключатель версий -->
+                    <div class="flex items-center gap-2 bg-zinc-950 p-1.5 rounded-xl border border-zinc-800 self-start">
+                        <button onclick="switchOsVersion('v02')" id="tab-v02" class="px-4 py-2 rounded-lg text-xs font-mono font-bold bg-amber-500 text-zinc-950 transition-all cursor-pointer">
+                            v0.2 (GUI 1280×720)
+                        </button>
+                        <button onclick="switchOsVersion('v01')" id="tab-v01" class="px-4 py-2 rounded-lg text-xs font-mono font-bold text-zinc-400 hover:text-white transition-all cursor-pointer">
+                            v0.1 (VGA 80×25)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Эмулятор v0.2 -->
+            <div id="emu-v02" class="solid-panel rounded-2xl p-4 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                        <span class="text-xs sm:text-sm font-semibold text-white">Интерактивный рабочий стол SunRayOS v0.2</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="text-zinc-400">Обои:</span>
+                        <button onclick="setSimTheme(0)" id="th-btn-0" class="px-2.5 py-1 rounded bg-blue-900/50 border border-blue-500 text-white font-mono cursor-pointer">Ocean</button>
+                        <button onclick="setSimTheme(1)" id="th-btn-1" class="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white font-mono cursor-pointer">Aurora</button>
+                        <button onclick="setSimTheme(2)" id="th-btn-2" class="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white font-mono cursor-pointer">Sunset</button>
+                    </div>
+                </div>
+
+                <!-- Экран симулятора -->
+                <div id="sim-screen" class="relative w-full h-[460px] sm:h-[500px] rounded-xl overflow-hidden border border-zinc-800 select-none flex flex-col justify-between transition-all duration-300"
+                     style="background: linear-gradient(180deg, #0A2A6B 0%, #2E8BEA 100%);">
+                    
+                    <div class="relative flex-grow p-3 sm:p-4 flex gap-3 sm:gap-5 overflow-hidden">
+                        
+                        <!-- Иконки рабочего стола -->
+                        <div class="flex flex-col gap-2 shrink-0 z-10">
+                            <button onclick="openSimApp('term')" class="w-20 p-2 rounded-lg hover:bg-black/30 flex flex-col items-center gap-1 text-center transition-colors cursor-pointer">
+                                <div class="w-10 h-10 rounded-lg bg-[#141828] border border-zinc-700 flex items-center justify-center font-mono font-bold text-[#4ADE80] text-sm">&gt;_</div>
+                                <span class="text-[11px] font-mono text-white drop-shadow">Terminal</span>
+                            </button>
+                            <button onclick="openSimApp('files')" class="w-20 p-2 rounded-lg hover:bg-black/30 flex flex-col items-center gap-1 text-center transition-colors cursor-pointer">
+                                <div class="w-10 h-10 rounded-lg bg-[#FFC94D] border border-zinc-700 flex items-center justify-center text-zinc-900 font-bold text-base">📁</div>
+                                <span class="text-[11px] font-mono text-white drop-shadow">Files</span>
+                            </button>
+                            <button onclick="openSimApp('note')" class="w-20 p-2 rounded-lg hover:bg-black/30 flex flex-col items-center gap-1 text-center transition-colors cursor-pointer">
+                                <div class="w-10 h-10 rounded-lg bg-[#F2F4F8] border border-zinc-700 flex items-center justify-center text-[#4DA3FF] font-bold text-base">📝</div>
+                                <span class="text-[11px] font-mono text-white drop-shadow">Notepad</span>
+                            </button>
+                            <button onclick="openSimApp('calc')" class="w-20 p-2 rounded-lg hover:bg-black/30 flex flex-col items-center gap-1 text-center transition-colors cursor-pointer">
+                                <div class="w-10 h-10 rounded-lg bg-[#2E3350] border border-zinc-700 flex items-center justify-center text-[#9BE7B0] font-mono font-bold text-xs">123</div>
+                                <span class="text-[11px] font-mono text-white drop-shadow">Calculator</span>
+                            </button>
+                            <button onclick="openSimApp('set')" class="w-20 p-2 rounded-lg hover:bg-black/30 flex flex-col items-center gap-1 text-center transition-colors cursor-pointer">
+                                <div class="w-10 h-10 rounded-lg bg-[#4B5675] border border-zinc-700 flex items-center justify-center text-white text-base">⚙️</div>
+                                <span class="text-[11px] font-mono text-white drop-shadow">Settings</span>
+                            </button>
+                        </div>
+
+                        <!-- Окно приложения -->
+                        <div id="sim-window" class="flex-grow max-w-2xl h-full rounded-xl bg-[#1F2335] border border-zinc-700 shadow-xl flex flex-col overflow-hidden">
+                            <div class="h-9 px-3 bg-[#2C3350] flex items-center justify-between shrink-0">
+                                <div class="flex items-center gap-2">
+                                    <span id="sim-win-badge" class="w-2.5 h-2.5 rounded-full bg-[#4DA3FF]"></span>
+                                    <span id="sim-win-title" class="font-mono text-xs sm:text-sm font-bold text-white">Terminal</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-xs font-mono text-zinc-300">
+                                    <span class="px-2 py-0.5 rounded hover:bg-white/10">_</span>
+                                    <span class="px-2 py-0.5 rounded hover:bg-white/10">□</span>
+                                    <button onclick="closeSimWindow()" class="px-2 py-0.5 rounded hover:bg-red-600 hover:text-white cursor-pointer">×</button>
+                                </div>
+                            </div>
+
+                            <!-- Terminal -->
+                            <div id="app-term" class="flex-grow p-3 bg-[#0E111C] m-2 rounded-lg font-mono text-xs sm:text-sm flex flex-col justify-between overflow-hidden border border-zinc-800">
+                                <div id="term-output" class="os-scroll overflow-y-auto space-y-1 text-[#E6E9F5] pr-1">
+                                    <div class="text-[#FFB454]">SunRayOS v0.2</div>
+                                    <div>Type 'help' for commands. (Попробуйте: <span class="text-[#7CB8FF]">info</span>, <span class="text-[#7CB8FF]">ls</span>, <span class="text-[#7CB8FF]">cat readme.txt</span>, <span class="text-[#7CB8FF]">time</span>)</div>
+                                    <div>&nbsp;</div>
+                                </div>
+                                <form onsubmit="runTermCommand(event)" class="flex items-center gap-1.5 pt-2 border-t border-zinc-800 shrink-0">
+                                    <span class="text-[#4ADE80] font-bold">sunray&gt;</span>
+                                    <input id="term-input" type="text" autocomplete="off" placeholder="введите команду..." 
+                                           class="w-full bg-transparent text-[#E6E9F5] focus:outline-none font-mono text-xs sm:text-sm">
+                                </form>
+                            </div>
+
+                            <!-- Files -->
+                            <div id="app-files" class="hidden flex-grow p-3 flex flex-col gap-3 overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <button onclick="simNewFile()" class="px-3 py-1.5 rounded bg-[#2D6CDF] hover:bg-[#3F82F5] text-white font-mono text-xs font-bold cursor-pointer">+ New</button>
+                                    <span id="files-counter" class="font-mono text-xs text-[#8E96B5]">2 files (max 12)</span>
+                                </div>
+                                <div id="files-list" class="os-scroll flex-grow overflow-y-auto space-y-1.5 pr-1 font-mono text-xs"></div>
+                            </div>
+
+                            <!-- Notepad -->
+                            <div id="app-note" class="hidden flex-grow p-3 flex flex-col gap-2 overflow-hidden">
+                                <div class="flex items-center justify-between font-mono text-xs">
+                                    <span id="note-filename" class="text-white font-bold">readme.txt</span>
+                                    <div class="flex items-center gap-3">
+                                        <span id="note-status" class="text-[#8E96B5]">Ctrl+S to save</span>
+                                        <button onclick="simSaveNote()" class="px-2.5 py-1 rounded bg-[#2D6CDF] text-white font-bold cursor-pointer">Save</button>
+                                    </div>
+                                </div>
+                                <textarea id="note-textarea" onkeydown="if(event.ctrlKey && (event.key==='s'||event.key==='S')){event.preventDefault();simSaveNote();}"
+                                          class="os-scroll flex-grow w-full bg-[#0E111C] text-[#E6E9F5] font-mono text-xs sm:text-sm p-3 rounded-lg border border-zinc-800 focus:outline-none resize-none"></textarea>
+                            </div>
+
+                            <!-- Calculator -->
+                            <div id="app-calc" class="hidden flex-grow p-3 flex flex-col gap-2.5 max-w-xs mx-auto w-full justify-center">
+                                <div id="calc-display" class="w-full h-12 px-3 rounded-lg bg-[#0E111C] border border-zinc-800 text-white font-mono text-2xl font-bold flex items-center justify-end overflow-hidden">0</div>
+                                <div class="grid grid-cols-4 gap-1.5 font-mono text-sm font-bold">
+                                    <button onclick="simCalcPress('7')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">7</button>
+                                    <button onclick="simCalcPress('8')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">8</button>
+                                    <button onclick="simCalcPress('9')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">9</button>
+                                    <button onclick="simCalcPress('/')" class="py-2.5 rounded bg-[#3B4A7A] hover:bg-[#4C5E9A] text-white cursor-pointer">/</button>
+                                    <button onclick="simCalcPress('4')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">4</button>
+                                    <button onclick="simCalcPress('5')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">5</button>
+                                    <button onclick="simCalcPress('6')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">6</button>
+                                    <button onclick="simCalcPress('*')" class="py-2.5 rounded bg-[#3B4A7A] hover:bg-[#4C5E9A] text-white cursor-pointer">*</button>
+                                    <button onclick="simCalcPress('1')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">1</button>
+                                    <button onclick="simCalcPress('2')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">2</button>
+                                    <button onclick="simCalcPress('3')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">3</button>
+                                    <button onclick="simCalcPress('-')" class="py-2.5 rounded bg-[#3B4A7A] hover:bg-[#4C5E9A] text-white cursor-pointer">-</button>
+                                    <button onclick="simCalcPress('C')" class="py-2.5 rounded bg-[#7A2F3B] hover:bg-[#A03E4E] text-white cursor-pointer">C</button>
+                                    <button onclick="simCalcPress('0')" class="py-2.5 rounded bg-[#2A3050] hover:bg-[#3A4378] text-white cursor-pointer">0</button>
+                                    <button onclick="simCalcPress('=')" class="py-2.5 rounded bg-[#2D6CDF] hover:bg-[#3F82F5] text-white cursor-pointer">=</button>
+                                    <button onclick="simCalcPress('+')" class="py-2.5 rounded bg-[#3B4A7A] hover:bg-[#4C5E9A] text-white cursor-pointer">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Settings -->
+                            <div id="app-set" class="hidden flex-grow p-4 font-mono text-xs space-y-3 overflow-y-auto os-scroll">
+                                <div class="text-white font-bold text-sm">Wallpaper</div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button onclick="setSimTheme(0)" class="h-12 rounded border-2 border-[#4DA3FF] text-white font-bold flex items-end justify-center pb-1 cursor-pointer" style="background: linear-gradient(180deg, #0A2A6B, #2E8BEA);">Ocean</button>
+                                    <button onclick="setSimTheme(1)" class="h-12 rounded border border-zinc-700 text-white font-bold flex items-end justify-center pb-1 cursor-pointer" style="background: linear-gradient(180deg, #12082E, #6A2BC4);">Aurora</button>
+                                    <button onclick="setSimTheme(2)" class="h-12 rounded border border-zinc-700 text-white font-bold flex items-end justify-center pb-1 cursor-pointer" style="background: linear-gradient(180deg, #1B1446, #F0743C);">Sunset</button>
+                                </div>
+                                <div class="border-t border-zinc-800 pt-3 space-y-1.5 text-[#E6E9F5]">
+                                    <div class="text-white font-bold text-sm mb-1">System</div>
+                                    <div>Display: 1280x720, 32 bit</div>
+                                    <div id="set-uptime">Uptime: 0 s</div>
+                                    <div id="set-files">Files: 2 / 12</div>
+                                    <div class="text-[#FFB454]">Network: not connected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Taskbar -->
+                    <div class="h-11 px-3 bg-[#0C1020] border-t border-zinc-800 flex items-center justify-between shrink-0 z-10">
+                        <div class="flex items-center gap-2">
+                            <button onclick="openSimApp('term')" title="SunRayOS Start" class="w-8 h-8 rounded bg-[#20263C] hover:bg-[#2E3558] flex items-center justify-center cursor-pointer">
+                                <span class="w-4 h-4 rounded-full bg-[#FFD54A]"></span>
+                            </button>
+                            <span id="taskbar-active-app" class="px-2.5 py-1 rounded bg-[#2E3558] text-white font-mono text-xs border-b-2 border-[#4DA3FF]">
+                                Terminal
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-4 font-mono text-xs">
+                            <span class="text-[#8E96B5] hidden sm:inline">NET OFF</span>
+                            <div class="text-right leading-tight">
+                                <div id="taskbar-time" class="text-white font-bold">12:00</div>
+                                <div id="taskbar-date" class="text-[10px] text-[#8E96B5]">17/11</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- v0.1 Превью -->
+            <div id="emu-v01" class="hidden solid-panel rounded-2xl p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs sm:text-sm font-semibold text-white">SunRayOS v0.1 — Текстовый режим VGA 80×25 (0xB8000)</span>
+                    <span class="text-xs font-mono text-zinc-400">kernel_text.c.bak</span>
+                </div>
+                <div class="w-full rounded-xl bg-black border border-zinc-800 p-5 font-mono text-xs sm:text-sm overflow-x-auto leading-snug">
+<pre class="text-amber-400 font-bold">  ____              ____             ___  ____
+ / ___| _   _ _ __ |  _ \ __ _ _   _/ _ \/ ___|
+ \___ \| | | | '_ \| |_) / _` | | | | | | \___ \
+  ___) | |_| | | | |  _ &lt; (_| | |_| | |_| |___) |
+ |____/ \__,_|_| |_|_| \_\__,_|\__, |\___/|____/
+                               |___/</pre>
+                    <div class="text-zinc-300 mt-3">SunRayOS v0.1. Type 'help'</div>
+                    <div class="mt-2"><span class="text-emerald-400">sunray&gt; </span><span class="text-zinc-200">about</span></div>
+                    <div class="text-zinc-300">SunRayOS v0.1 - my first operating system</div>
+                    <div class="mt-1"><span class="text-emerald-400">sunray&gt; </span><span class="text-zinc-200">help</span></div>
+                    <div class="text-zinc-300">Commands: help clear echo about reboot</div>
+                </div>
+            </div>
+
+            <!-- Архитектура -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="solid-panel rounded-xl p-5">
+                    <div class="text-xs font-mono text-amber-400 mb-1">boot.s &amp; linker.ld</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Загрузка и Ядро</h3>
+                    <ul class="text-xs text-zinc-400 space-y-1.5 font-mono">
+                        <li>• Multiboot Magic: <span class="text-zinc-200">0x1BADB002</span></li>
+                        <li>• Адрес загрузки ядра: <span class="text-zinc-200">1M (0x100000)</span></li>
+                        <li>• Стек ядра: <span class="text-zinc-200">64 КБ (65536 байт)</span></li>
+                        <li>• Компилятор: <span class="text-zinc-200">Clang 23.1.5 + LLD</span></li>
+                    </ul>
+                </div>
+
+                <div class="solid-panel rounded-xl p-5">
+                    <div class="text-xs font-mono text-amber-400 mb-1">GDT • IDT • PIC • PIT</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Прерывания и Устройства</h3>
+                    <ul class="text-xs text-zinc-400 space-y-1.5 font-mono">
+                        <li>• Системный таймер PIT: <span class="text-zinc-200">100 Гц (IRQ0)</span></li>
+                        <li>• Клавиатура PS/2: <span class="text-zinc-200">IRQ1 (US + Shift/Caps/Ctrl)</span></li>
+                        <li>• Мышь PS/2: <span class="text-zinc-200">IRQ12 (3-байтовые пакеты)</span></li>
+                        <li>• Часы CMOS RTC: <span class="text-zinc-200">порты 0x70 / 0x71 (UTC)</span></li>
+                    </ul>
+                </div>
+
+                <div class="solid-panel rounded-xl p-5">
+                    <div class="text-xs font-mono text-amber-400 mb-1">Bochs VBE &amp; RAM FS</div>
+                    <h3 class="text-lg font-bold text-white mb-2">Графика и Память</h3>
+                    <ul class="text-xs text-zinc-400 space-y-1.5 font-mono">
+                        <li>• Видеорежим: <span class="text-zinc-200">1280×720, 32-bit, PCI 0x11111234</span></li>
+                        <li>• Шрифт: <span class="text-zinc-200">встроенный растровый 8×8</span></li>
+                        <li>• RAM FS: <span class="text-zinc-200">до 12 файлов × 1024 байта</span></li>
+                        <li>• Приложения: <span class="text-zinc-200">Terminal, Files, Notepad, Calc, Settings</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- -----------------------------------------------------------------
+             СТРАНИЦА 3: MY GAMES AND APPS
+             ----------------------------------------------------------------- -->
+        <section id="view-games" class="page-view hidden">
+            <div class="mb-8">
+                <button onclick="navigateTo('home')" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl solid-panel solid-panel-hover text-sm font-medium text-zinc-300 hover:text-white transition-colors cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    <span>Назад на главную</span>
+                </button>
+            </div>
+
+            <div class="max-w-2xl mx-auto solid-panel rounded-2xl p-8 sm:p-12 text-center">
+                <div class="w-16 h-16 mx-auto mb-6 rounded-xl bg-purple-900/40 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                    </svg>
+                </div>
+
+                <span class="inline-block text-xs font-mono uppercase tracking-wider px-3 py-1 rounded-full bg-purple-950 text-purple-300 border border-purple-500/30 mb-4">
+                    В разработке
+                </span>
+
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">
+                    My Games and Apps
+                </h2>
+
+                <p class="text-zinc-400 text-base leading-relaxed mb-8">
+                    Мы ещё не выпустили ни одной игры или приложения — проекты находятся на стадии планирования и разработки. 
+                    Когда появятся первые релизы, они будут опубликованы здесь и на нашей странице itch.io.
+                </p>
+
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <a id="link-itch-catalog" href="https://mkkotik.itch.io/" target="_blank" rel="noopener noreferrer" 
+                       class="px-6 py-3 rounded-xl bg-[#fa5c5c] hover:bg-[#ff4747] text-white font-semibold text-sm inline-flex items-center gap-2 transition-colors">
+                        <span>Следить на mkkotik.itch.io</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                    </a>
+                    <button onclick="navigateTo('sunray')" class="px-6 py-3 rounded-xl solid-panel solid-panel-hover text-zinc-200 font-semibold text-sm transition-colors cursor-pointer">
+                        Посмотреть SunRay OS →
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =====================================================================
+         ПОДВАЛ САЙТА
+         ===================================================================== -->
+    <footer class="w-full border-t border-[#222530] py-6 px-4 sm:px-6 bg-[#121319]">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-400">
+            <div>
+                © 2026 <span class="text-zinc-200 font-semibold">MKotik</span>. SunRayOS &amp; Development.
+            </div>
+            <div>
+                <a id="link-itch-footer" href="https://mkkotik.itch.io/" target="_blank" rel="noopener noreferrer" class="hover:text-[#fa5c5c] transition-colors">
+                    mkkotik.itch.io
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Уведомление (Toast) -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden solid-panel border-amber-500/40 text-white px-4 py-3 rounded-xl shadow-xl text-sm max-w-xs"></div>
+
+    <!-- =====================================================================
+         JAVASCRIPT
+         ===================================================================== -->
+    <script>
+        function navigateTo(pageId) {
+            const pages = ['home', 'sunray', 'games'];
+
+            pages.forEach(id => {
+                const viewEl = document.getElementById(`view-${id}`);
+                const navEl = document.getElementById(`nav-${id === 'sunray' ? 'os' : id}`);
+                
+                if (id === pageId) {
+                    viewEl.classList.remove('hidden');
+                    if (navEl) {
+                        navEl.classList.add('text-white', 'bg-zinc-800');
+                        navEl.classList.remove('text-zinc-400');
+                    }
+                } else {
+                    viewEl.classList.add('hidden');
+                    if (navEl) {
+                        navEl.classList.remove('text-white', 'bg-zinc-800');
+                        navEl.classList.add('text-zinc-400');
+                    }
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showNotification(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        /* =================================================================
+           СИМУЛЯТОР SUNRAYOS v0.2
+           ================================================================= */
+        const simStartTime = Date.now();
+        let simCurrentFile = 'readme.txt';
+
+        const simFs = [
+            { name: 'readme.txt', data: 'Welcome to SunRayOS!\nA tiny OS written from scratch.\nDouble-click an icon to open an app.\n' },
+            { name: 'hello.txt',  data: 'Hello, world!\n' }
+        ];
+
+        function switchOsVersion(ver) {
+            const v02 = document.getElementById('emu-v02');
+            const v01 = document.getElementById('emu-v01');
+            const t02 = document.getElementById('tab-v02');
+            const t01 = document.getElementById('tab-v01');
+
+            if (ver === 'v02') {
+                v02.classList.remove('hidden');
+                v01.classList.add('hidden');
+                t02.className = 'px-4 py-2 rounded-lg text-xs font-mono font-bold bg-amber-500 text-zinc-950 transition-all cursor-pointer';
+                t01.className = 'px-4 py-2 rounded-lg text-xs font-mono font-bold text-zinc-400 hover:text-white transition-all cursor-pointer';
+            } else {
+                v01.classList.remove('hidden');
+                v02.classList.add('hidden');
+                t01.className = 'px-4 py-2 rounded-lg text-xs font-mono font-bold bg-amber-500 text-zinc-950 transition-all cursor-pointer';
+                t02.className = 'px-4 py-2 rounded-lg text-xs font-mono font-bold text-zinc-400 hover:text-white transition-all cursor-pointer';
+            }
+        }
+
+        const SIM_THEMES = [
+            { name: 'Ocean',  top: '#0A2A6B', bot: '#2E8BEA' },
+            { name: 'Aurora', top: '#12082E', bot: '#6A2BC4' },
+            { name: 'Sunset', top: '#1B1446', bot: '#F0743C' }
+        ];
+
+        function setSimTheme(idx) {
+            const t = SIM_THEMES[idx];
+            const scr = document.getElementById('sim-screen');
+            scr.style.background = `linear-gradient(180deg, ${t.top} 0%, ${t.bot} 100%)`;
+
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`th-btn-${i}`);
+                if (i === idx) {
+                    btn.className = 'px-2.5 py-1 rounded bg-blue-900/50 border border-blue-500 text-white font-mono cursor-pointer';
+                } else {
+                    btn.className = 'px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white font-mono cursor-pointer';
+                }
+            }
+        }
+
+        function openSimApp(appKey) {
+            const titles = {
+                term: 'Terminal',
+                files: 'Files',
+                note: 'Notepad',
+                calc: 'Calculator',
+                set: 'Settings'
+            };
+            const win = document.getElementById('sim-window');
+            win.classList.remove('hidden');
+            win.classList.add('flex');
+
+            ['term', 'files', 'note', 'calc', 'set'].forEach(k => {
+                document.getElementById(`app-${k}`).classList.add('hidden');
+            });
+            document.getElementById(`app-${appKey}`).classList.remove('hidden');
+            document.getElementById('sim-win-title').textContent = titles[appKey];
+            document.getElementById('taskbar-active-app').textContent = titles[appKey];
+            document.getElementById('taskbar-active-app').classList.remove('hidden');
+
+            if (appKey === 'files') renderSimFiles();
+            if (appKey === 'note') loadSimNote(simCurrentFile);
+            if (appKey === 'set') updateSimSystemStats();
+            if (appKey === 'term') document.getElementById('term-input').focus();
+        }
+
+        function closeSimWindow() {
+            document.getElementById('sim-window').classList.add('hidden');
+            document.getElementById('taskbar-active-app').classList.add('hidden');
+        }
+
+        function renderSimFiles() {
+            const list = document.getElementById('files-list');
+            document.getElementById('files-counter').textContent = `${simFs.length} files (max 12)`;
+            list.innerHTML = simFs.map(f => `
+                <div class="flex items-center justify-between px-3 py-2 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 transition-colors">
+                    <button onclick="openSimFileInNote('${f.name}')" class="flex items-center gap-2 text-left text-[#E6E9F5] hover:text-white cursor-pointer">
+                        <span>📄</span>
+                        <span>${f.name}</span>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[#8E96B5]">${f.data.length} B</span>
+                        <button onclick="deleteSimFile('${f.name}')" class="text-red-400 hover:text-red-300 cursor-pointer" title="Delete">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function simNewFile() {
+            if (simFs.length >= 12) {
+                showNotification('Disk full (максимум 12 файлов в RAM FS)');
+                return;
+            }
+            let n = 1;
+            while (simFs.some(f => f.name === `new${n}.txt`)) n++;
+            const name = `new${n}.txt`;
+            simFs.push({ name, data: '' });
+            openSimFileInNote(name);
+        }
+
+        function deleteSimFile(name) {
+            const idx = simFs.findIndex(f => f.name === name);
+            if (idx >= 0) simFs.splice(idx, 1);
+            renderSimFiles();
+        }
+
+        function openSimFileInNote(name) {
+            simCurrentFile = name;
+            openSimApp('note');
+        }
+
+        function loadSimNote(name) {
+            let f = simFs.find(x => x.name === name);
+            if (!f && simFs.length > 0) f = simFs[0];
+            if (!f) {
+                f = { name: 'note.txt', data: '' };
+                simFs.push(f);
+            }
+            simCurrentFile = f.name;
+            document.getElementById('note-filename').textContent = f.name;
+            document.getElementById('note-textarea').value = f.data;
+            document.getElementById('note-status').textContent = 'Ctrl+S to save';
+            document.getElementById('note-status').className = 'text-[#8E96B5]';
+        }
+
+        function simSaveNote() {
+            const txt = document.getElementById('note-textarea').value.slice(0, 1023);
+            let f = simFs.find(x => x.name === simCurrentFile);
+            if (!f) {
+                if (simFs.length >= 12) {
+                    document.getElementById('note-status').textContent = 'Disk full';
+                    document.getElementById('note-status').className = 'text-red-400';
+                    return;
+                }
+                f = { name: simCurrentFile, data: txt };
+                simFs.push(f);
+            } else {
+                f.data = txt;
+            }
+            document.getElementById('note-status').textContent = 'Saved';
+            document.getElementById('note-status').className = 'text-[#4ADE80]';
+        }
+
+        let cacc = 0, ccur = 0, cop = 0, cfresh = true, cerr = false;
+        function simCalcApply() {
+            if (cop === '+') cacc += ccur;
+            else if (cop === '-') cacc -= ccur;
+            else if (cop === '*') cacc *= ccur;
+            else if (cop === '/') {
+                if (ccur === 0) { cerr = true; cacc = 0; }
+                else cacc = Math.trunc(cacc / ccur);
+            } else cacc = ccur;
+        }
+
+        function simCalcPress(k) {
+            if (k >= '0' && k <= '9') {
+                if (cerr) { cacc = ccur = 0; cop = 0; cerr = false; cfresh = true; }
+                if (cfresh) { ccur = 0; cfresh = false; }
+                if (ccur < 99999999) ccur = ccur * 10 + Number(k);
+            } else if (k === 'C') {
+                cacc = ccur = 0; cop = 0; cfresh = true; cerr = false;
+            } else if (['+', '-', '*', '/'].includes(k)) {
+                if (!cfresh) {
+                    if (!cop) cacc = ccur;
+                    else simCalcApply();
+                    ccur = cacc;
+                }
+                cop = k; cfresh = true;
+            } else if (k === '=') {
+                if (cop && !cfresh) { simCalcApply(); ccur = cacc; }
+                cop = 0; cfresh = true;
+            }
+            document.getElementById('calc-display').textContent = cerr ? 'ERROR' : String(ccur);
+        }
+
+        function appendTerm(text, colorClass = 'text-[#E6E9F5]') {
+            const out = document.getElementById('term-output');
+            const line = document.createElement('div');
+            line.className = colorClass + ' whitespace-pre-wrap';
+            line.textContent = text;
+            out.appendChild(line);
+            out.scrollTop = out.scrollHeight;
+        }
+
+        function runTermCommand(e) {
+            e.preventDefault();
+            const inp = document.getElementById('term-input');
+            const raw = inp.value;
+            inp.value = '';
+            appendTerm(`sunray> ${raw}`, 'text-[#4ADE80]');
+
+            const trimmed = raw.trim();
+            if (!trimmed) return;
+            const spaceIdx = trimmed.indexOf(' ');
+            const cmd = spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx);
+            const arg = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1).trim();
+
+            const uptimeSec = Math.floor((Date.now() - simStartTime) / 1000);
+            const now = new Date();
+
+            switch (cmd) {
+                case 'help':
+                    appendTerm('Commands:', 'text-[#7CB8FF]');
+                    appendTerm(' help clear echo info ver about');
+                    appendTerm(' time date uptime');
+                    appendTerm(' ls cat touch rm write edit');
+                    appendTerm(' ping exit reboot shutdown');
+                    break;
+                case 'clear':
+                    document.getElementById('term-output').innerHTML = '';
+                    break;
+                case 'echo':
+                    appendTerm(arg);
+                    break;
+                case 'ver':
+                case 'about':
+                    appendTerm('SunRayOS v0.2 (x86, 32-bit)', 'text-[#FFB454]');
+                    break;
+                case 'info':
+                    appendTerm('OS:      SunRayOS v0.2');
+                    appendTerm('Display: 1280x720, 32 bit');
+                    appendTerm(`Uptime:  ${uptimeSec} s`);
+                    appendTerm(`Files:   ${simFs.length} / 12`);
+                    appendTerm('Network: not connected');
+                    break;
+                case 'time':
+                    appendTerm(`${String(now.getUTCHours()).padStart(2,'0')}:${String(now.getUTCMinutes()).padStart(2,'0')}:${String(now.getUTCSeconds()).padStart(2,'0')} UTC`);
+                    break;
+                case 'date':
+                    appendTerm(`${String(now.getUTCDate()).padStart(2,'0')}.${String(now.getUTCMonth()+1).padStart(2,'0')}.${now.getUTCFullYear()}`);
+                    break;
+                case 'uptime':
+                    appendTerm(`${uptimeSec} seconds`);
+                    break;
+                case 'ls':
+                    if (simFs.length === 0) appendTerm('(empty)');
+                    else simFs.forEach(f => appendTerm(`${f.name.padEnd(18, ' ')}${f.data.length} B`, 'text-[#7CB8FF]'));
+                    break;
+                case 'cat': {
+                    const f = simFs.find(x => x.name === arg);
+                    if (!f) appendTerm('no such file', 'text-[#FFB454]');
+                    else appendTerm(f.data.replace(/\n$/, ''));
+                    break;
+                }
+                case 'touch':
+                    if (!arg || arg.length > 15) appendTerm('usage: touch name (max 15 chars)', 'text-[#FFB454]');
+                    else if (simFs.length >= 12) appendTerm('disk full', 'text-[#FFB454]');
+                    else if (!simFs.some(x => x.name === arg)) simFs.push({ name: arg, data: '' });
+                    break;
+                case 'rm': {
+                    const idx = simFs.findIndex(x => x.name === arg);
+                    if (idx < 0) appendTerm('no such file', 'text-[#FFB454]');
+                    else simFs.splice(idx, 1);
+                    break;
+                }
+                case 'write': {
+                    const sp = arg.indexOf(' ');
+                    const fn = sp === -1 ? arg : arg.slice(0, sp);
+                    const tx = sp === -1 ? '' : arg.slice(sp + 1);
+                    if (!fn || fn.length > 15) appendTerm('usage: write name text', 'text-[#FFB454]');
+                    else {
+                        let f = simFs.find(x => x.name === fn);
+                        if (!f) {
+                            if (simFs.length >= 12) { appendTerm('disk full', 'text-[#FFB454]'); break; }
+                            f = { name: fn, data: tx + '\n' };
+                            simFs.push(f);
+                        } else {
+                            f.data = tx + '\n';
+                        }
+                    }
+                    break;
+                }
+                case 'edit': {
+                    const fn = arg || 'note.txt';
+                    if (fn.length > 15) appendTerm('name too long', 'text-[#FFB454]');
+                    else {
+                        if (!simFs.some(x => x.name === fn)) {
+                            if (simFs.length >= 12) { appendTerm('disk full', 'text-[#FFB454]'); break; }
+                            simFs.push({ name: fn, data: '' });
+                        }
+                        openSimFileInNote(fn);
+                    }
+                    break;
+                }
+                case 'ping':
+                    appendTerm('ping: no network driver yet', 'text-[#FFB454]');
+                    break;
+                case 'exit':
+                    closeSimWindow();
+                    break;
+                case 'reboot':
+                    document.getElementById('term-output').innerHTML = '';
+                    appendTerm('SunRayOS v0.2', 'text-[#FFB454]');
+                    appendTerm("Type 'help' for commands.\n");
+                    break;
+                case 'shutdown':
+                    closeSimWindow();
+                    showNotification('ACPI shutdown signal sent (0x604 -> 0x2000)');
+                    break;
+                default:
+                    appendTerm(`unknown command: ${cmd}`, 'text-[#FFB454]');
+            }
+        }
+
+        function updateSimSystemStats() {
+            const up = Math.floor((Date.now() - simStartTime) / 1000);
+            const upEl = document.getElementById('set-uptime');
+            const flEl = document.getElementById('set-files');
+            if (upEl) upEl.textContent = `Uptime: ${up} s`;
+            if (flEl) flEl.textContent = `Files: ${simFs.length} / 12`;
+        }
+
+        setInterval(() => {
+            const d = new Date();
+            const tm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const dt = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+            const tmEl = document.getElementById('taskbar-time');
+            const dtEl = document.getElementById('taskbar-date');
+            if (tmEl) tmEl.textContent = tm;
+            if (dtEl) dtEl.textContent = dt;
+            updateSimSystemStats();
+        }, 1000);
+    </script>
+</body>
+</html>
